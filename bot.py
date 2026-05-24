@@ -31,8 +31,7 @@ from openai import OpenAI
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 META_VERIFY_TOKEN = os.getenv("META_VERIFY_TOKEN", "")
-META_PAGE_ACCESS_TOKEN = os.getenv("META_PAGE_ACCESS_TOKEN", "")
-
+META_PAGE_ACCESS_TOKEN = os.getenv("META_PAGE_ACCESS_TOKEN", "").replace("\n", "").replace("\r", "").strip()
 # إذا صار خطأ بالموديل، غيريه من Render Environment حسب الموديل المتوفر بحسابك
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 BRAND_NAME = os.getenv("BRAND_NAME", "روو")
