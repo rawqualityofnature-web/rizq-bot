@@ -37,8 +37,8 @@ OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 BRAND_NAME = os.getenv("BRAND_NAME", "روو")
 
 GRAPH_API_VERSION = "v23.0"
-SEND_API_URL = f"https://graph.facebook.com/{GRAPH_API_VERSION}/me/messages"
-
+INSTAGRAM_BUSINESS_ID = os.getenv("INSTAGRAM_BUSINESS_ID", "17841468983597567")
+SEND_API_URL = f"https://graph.facebook.com/{GRAPH_API_VERSION}/{INSTAGRAM_BUSINESS_ID}/messages"
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 client = OpenAI(api_key=OPENAI_API_KEY)
