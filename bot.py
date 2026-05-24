@@ -555,7 +555,17 @@ def local_test():
     data = generate_risq_reply(user_id, text)
     return jsonify(data), 200
 
-
+@app.route("/privacy", methods=["GET"])
+def privacy_policy():
+    return """
+    <h1>Privacy Policy</h1>
+    <p>Risq Customer Service respects your privacy.</p>
+    <p>This app receives Instagram messages only to provide customer support, product information, order assistance, and follow-up service.</p>
+    <p>We may process basic Instagram user information and message content for customer service purposes only.</p>
+    <p>We do not sell, rent, or share user data with third parties.</p>
+    <p>Users can request deletion of their data by contacting the business through Instagram direct messages.</p>
+    <p>Contact: rawqualityofnature@gmail.com</p>
+    """, 200
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "5000"))
     app.run(host="0.0.0.0", port=port, debug=False)
