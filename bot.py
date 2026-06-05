@@ -452,10 +452,8 @@ def send_instagram_message(recipient_id: str, text: str) -> Dict[str, Any]:
         # كود 190 = توكن منتهي أو غلط
         if error_code == 190:
             logging.critical(
-                "[TOKEN ERROR] Instagram access token is invalid or expired (code 190).
-"
-                "Fix: Go to Render Dashboard > Environment Variables > META_PAGE_ACCESS_TOKEN
-"
+                "[TOKEN ERROR] Instagram access token is invalid or expired (code 190). "
+                "Fix: Go to Render Dashboard > Environment Variables > META_PAGE_ACCESS_TOKEN. "
                 "Get a new token from: https://developers.facebook.com/tools/explorer/"
             )
     else:
