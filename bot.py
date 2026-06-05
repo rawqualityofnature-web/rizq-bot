@@ -38,8 +38,7 @@ BRAND_NAME = os.getenv("BRAND_NAME", "روو")
 
 GRAPH_API_VERSION = "v23.0"
 INSTAGRAM_BUSINESS_ID = os.getenv("INSTAGRAM_BUSINESS_ID", "17841468983597567")
-SEND_API_URL = f"https://graph.facebook.com/{GRAPH_API_VERSION}/{INSTAGRAM_BUSINESS_ID}/messages"
-app = Flask(__name__)
+SEND_API_URL = f"https://graph.instagram.com/{GRAPH_API_VERSION}/{INSTAGRAM_BUSINESS_ID}/messages"app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 client = OpenAI(api_key=OPENAI_API_KEY)
 
