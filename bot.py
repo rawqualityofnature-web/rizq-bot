@@ -354,14 +354,16 @@ def build_input_messages(user_id: str, customer_text: str) -> list:
 
 
 def generate_risq_reply(user_id: str, customer_text: str) -> Dict[str, Any]:
-    response = client.responses.create(
+    response = client.chat.completions.create(
         model=OPENAI_MODEL,
-        input=build_input_messages(user_id, customer_text),
+        messages=build_input_messages(user_id, customer_text),
         temperature=0.75,
-        max_output_tokens=800,
+        max_tokens=800,
+        response_format={"type": "json_object"},
     )
 
-    data = parse_model_json(response.output_text.strip())
+    raw = response.choices[0].message.content.strip()
+    data = parse_model_json(raw)
     reply = data.get("reply", "").strip()
 
     history = get_history(user_id)
@@ -385,6 +387,51 @@ def generate_risq_reply(user_id: str, customer_text: str) -> Dict[str, Any]:
 # INSTAGRAM / META
 # =========================
 
+def refresh_long_lived_token() -> str:
+    """
+    يجدد الـ long-lived token قبل انتهائه (صالح 60 يوم).
+    استدعيها من cron أو عند بدء تشغيل البوت.
+    """
+    url = "https://graph.facebook.com/v23.0/oauth/access_token"
+    params = {
+        "grant_type": "fb_exchange_token",
+        "client_id": os.getenv("META_APP_ID", ""),
+        "client_secret": os.getenv("META_APP_SECRET", ""),
+        "fb_exchange_token": META_PAGE_ACCESS_TOKEN,
+    }
+    try:
+        resp = requests.get(url, params=params, timeout=10)
+        data = resp.json()
+        new_token = data.get("access_token", "")
+        if new_token:
+            logging.info("Token refreshed successfully.")
+            return new_token
+        else:
+            logging.error("Token refresh failed: %s", data)
+    except Exception as e:
+        logging.exception("Token refresh exception: %s", e)
+    return META_PAGE_ACCESS_TOKEN
+
+
+def validate_token() -> bool:
+    """يتحقق من صلاحية التوكن الحالي."""
+    url = "https://graph.facebook.com/debug_token"
+    params = {
+        "input_token": META_PAGE_ACCESS_TOKEN,
+        "access_token": META_PAGE_ACCESS_TOKEN,
+    }
+    try:
+        resp = requests.get(url, params=params, timeout=10)
+        data = resp.json().get("data", {})
+        is_valid = data.get("is_valid", False)
+        expires_at = data.get("expires_at", 0)
+        logging.info("Token valid: %s | expires_at: %s", is_valid, expires_at)
+        return is_valid
+    except Exception as e:
+        logging.exception("Token validation error: %s", e)
+        return False
+
+
 def send_instagram_message(recipient_id: str, text: str) -> Dict[str, Any]:
     payload = {
         "recipient": {"id": recipient_id},
@@ -399,7 +446,18 @@ def send_instagram_message(recipient_id: str, text: str) -> Dict[str, Any]:
         result = {"status_code": response.status_code, "text": response.text}
 
     if response.status_code >= 300:
+        error_code = result.get("error", {}).get("code", 0)
         logging.error("Failed to send Instagram message: %s", result)
+
+        # كود 190 = توكن منتهي أو غلط
+        if error_code == 190:
+            logging.critical(
+                "[TOKEN ERROR] Instagram access token is invalid or expired (code 190).
+"
+                "Fix: Go to Render Dashboard > Environment Variables > META_PAGE_ACCESS_TOKEN
+"
+                "Get a new token from: https://developers.facebook.com/tools/explorer/"
+            )
     else:
         logging.info("Sent Instagram message to %s", recipient_id)
 
@@ -487,6 +545,20 @@ def home():
     return "Risq bot is running."
 
 
+@app.route("/check-token", methods=["GET"])
+def check_token():
+    """Route لفحص صلاحية التوكن مباشرة من المتصفح."""
+    is_valid = validate_token()
+    if is_valid:
+        return jsonify({"status": "ok", "message": "Token is valid"}), 200
+    else:
+        return jsonify({
+            "status": "error",
+            "message": "Token is INVALID or EXPIRED (code 190). Please update META_PAGE_ACCESS_TOKEN in Render.",
+            "fix": "https://developers.facebook.com/tools/explorer/"
+        }), 401
+
+
 @app.route("/webhook", methods=["GET"])
 def verify_webhook():
     mode = request.args.get("hub.mode")
@@ -567,4 +639,7 @@ def privacy_policy():
     """, 200
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "5000"))
+    # فحص التوكن عند بدء التشغيل
+    logging.info("Checking META_PAGE_ACCESS_TOKEN on startup...")
+    validate_token()
     app.run(host="0.0.0.0", port=port, debug=False)
