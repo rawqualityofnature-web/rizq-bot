@@ -11,9 +11,9 @@ from flask import Flask, request, jsonify
 from openai import OpenAI
 
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-META_VERIFY_TOKEN = os.getenv("META_VERIFY_TOKEN", "")
-META_PAGE_ACCESS_TOKEN = os.getenv("META_PAGE_ACCESS_TOKEN", "")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "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")
+META_VERIFY_TOKEN = os.getenv("META_VERIFY_TOKEN", "risq_verify_2026")
+META_PAGE_ACCESS_TOKEN = os.getenv("META_PAGE_ACCESS_TOKEN", "IGAAUcJAGcWdFBZAGJGN0JUMVphU2JMMjlPRVBZAdS1pQlNVTDRSMWFFT0EzUXJ1ZAzZA3V0tlVWVwMFg1cVdHeDZABMk5Cc0FpczFrT2xfZAXlqSXphVGx1bkxQd2lOUzlUS041Slo4eEhZANjh5dGNMT2FQdUhOODNmNk5BdzZAoeDRCNAZDZD")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini") 
 BRAND_NAME = os.getenv("BRAND_NAME", "روو")
 
