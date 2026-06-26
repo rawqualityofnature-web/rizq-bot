@@ -452,7 +452,7 @@ def local_test():
     last_activity[user_id] = {**previous, "last_customer_message": now_ts()}
 
     data = generate_risq_reply(user_id, text)
-  send_telegram_alert("✅ Telegram test from RISQ Bot")
+    send_telegram_alert("✅ Telegram test from RISQ Bot")
     return jsonify(data), 200
 
 
