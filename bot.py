@@ -431,6 +431,7 @@ def receive_webhook():
 
         if reply_text:
             send_instagram_message(sender_id, reply_text)
+            send_instagram_message(sender_id, reply_text)
             last_activity[sender_id]["last_assistant_message"] = now_ts()
 
         handle_side_effects(sender_id, data)
