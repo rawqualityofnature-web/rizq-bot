@@ -16,7 +16,8 @@ META_VERIFY_TOKEN = os.getenv("META_VERIFY_TOKEN", "risq_verify_2026")
 META_PAGE_ACCESS_TOKEN = os.getenv("META_PAGE_ACCESS_TOKEN", "")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini") 
 BRAND_NAME = os.getenv("BRAND_NAME", "روو")
-
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 GRAPH_API_VERSION = "v23.0"
 SEND_API_URL = f"https://graph.instagram.com/{GRAPH_API_VERSION}/me/messages"
 app = Flask(__name__)
@@ -24,7 +25,27 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 
 client = OpenAI(api_key=OPENAI_API_KEY)
+def send_telegram_alert(message: str) -> None:
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        logging.warning("Telegram alert skipped: missing token or chat id")
+        return
 
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+
+    payload = {
+        "chat_id": TELEGRAM_CHAT_ID,
+        "text": message,
+        "parse_mode": "HTML"
+    }
+
+    try:
+        response = requests.post(url, json=payload, timeout=10)
+        if response.status_code >= 300:
+            logging.error("Telegram alert failed: %s", response.text)
+        else:
+            logging.info("Telegram alert sent successfully")
+    except Exception as e:
+        logging.exception("Telegram alert error: %s", e)
 
 conversation_history: Dict[str, list] = {}
 customer_state: Dict[str, Dict[str, Any]] = {}
@@ -84,11 +105,11 @@ RISQ_SYSTEM_PROMPT = f"""
 
 الأسعار:
 - العراق: 32 ألف دينار عراقي.
-- سوريا: 220 ألف.
+- سوريا: 280 ألف.
 
 الشحن:
 - العراق: بغداد 3 آلاف، المحافظات 5 آلاف.
-- سوريا: دمشق مجاني، المحافظات 20 ألف.
+- سوريا: دمشق 20 ألف.
 
 الخصم:
 - سوريا: إذا طلبت خصم، ممكن ينزل من 220 ألف إلى 200 ألف كبداية.
@@ -430,6 +451,7 @@ def local_test():
     last_activity[user_id] = {**previous, "last_customer_message": now_ts()}
 
     data = generate_risq_reply(user_id, text)
+  send_telegram_alert("✅ Telegram test from RISQ Bot")
     return jsonify(data), 200
 
 
